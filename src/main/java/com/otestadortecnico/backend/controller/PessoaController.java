@@ -30,8 +30,8 @@ import com.otestadortecnico.backend.domain.PessoaDTO;
 import com.otestadortecnico.backend.exception.PessoaNotFoundException;
 import io.swagger.annotations.*;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -40,14 +40,17 @@ import java.util.*;
 @RestController
 class PessoaController {
 
-    @Autowired
-    private PessoaService pessoaService;
+    private final PessoaService pessoaService;
+
+    public PessoaController(PessoaService pessoaService) {
+        this.pessoaService = pessoaService;
+    }
 
     @ApiOperation(value = "Lista todas as pessoas cadastradas")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Pessoas encontradas")
     })
-    @GetMapping("/api/v1/pessoa")
+    @GetMapping("/api/v1/pessoas")
     List<Pessoa> getPessoa() {
         return pessoaService.get();
     }
@@ -57,10 +60,11 @@ class PessoaController {
             @ApiResponse(code = 200, message = "Pessoa encontrada", response = PessoaDTO.class),
             @ApiResponse(code = 404, message = "Pessoa não encontrada", response = MessageDTO.class)
         })
-    @GetMapping("/api/v1/pessoa/{id}")
-    Pessoa one(@PathVariable Long id) {
-        return pessoaService.get(id).
-                orElseThrow(() -> new PessoaNotFoundException(id));
+    @GetMapping("/api/v1/pessoas/{id}")
+    ResponseEntity<Pessoa> one(@PathVariable Long id) {
+        return pessoaService.get(id)
+                .map(pessoa -> ResponseEntity.ok().body(pessoa))
+                .orElseThrow(() -> new PessoaNotFoundException(id));
     }
 
     @ApiOperation(value = "Adiciona uma pessoa")
@@ -69,7 +73,7 @@ class PessoaController {
             @ApiResponse(code = 201, message = "Pessoa criada com sucesso", response = PessoaDTO.class),
             @ApiResponse(code = 404, message = "Pessoa não encontrada", response = MessageDTO.class)
         })
-    @PostMapping("/api/v1/pessoa")
+    @PostMapping("/api/v1/pessoas")
     Pessoa novaPessoa(@Valid @RequestBody PessoaDTO pessoa) {
         return pessoaService.save(new ModelMapper().map(pessoa, Pessoa.class));
     }
@@ -79,11 +83,11 @@ class PessoaController {
             @ApiResponse(code = 200, message = "Pessoa criada com sucesso", response = PessoaDTO.class),
             @ApiResponse(code = 404, message = "Pessoa não encontrada", response = MessageDTO.class)
         })
-    @PutMapping("/api/v1/pessoa/{id}")
+    @PutMapping("/api/v1/pessoas/{id}")
     Pessoa updatePessoa(@RequestBody PessoaDTO pessoaAlterada, @PathVariable Long id) {
-        return pessoaService.update(new ModelMapper().map(pessoaAlterada, Pessoa.class), id).orElseThrow(() -> {
-            throw new PessoaNotFoundException(id);
-        });
+        return pessoaService.update(new ModelMapper()
+                .map(pessoaAlterada, Pessoa.class), id)
+                .orElseThrow(() -> { throw new PessoaNotFoundException(id); });
     }
 
     @ApiOperation(value = "Remove uma pessoa pelo seu id")
@@ -91,7 +95,7 @@ class PessoaController {
             @ApiResponse(code = 204, message = "Pessoa removida com sucesso"),
             @ApiResponse(code = 404, message = "Pessoa não encontrada", response = MessageDTO.class)
         })
-    @DeleteMapping("/api/v1/pessoa/{id}")
+    @DeleteMapping("/api/v1/pessoas/{id}")
     void delete(@PathVariable Long id) {
         pessoaService.deleteByID(id);
     }

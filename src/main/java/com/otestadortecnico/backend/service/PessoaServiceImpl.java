@@ -26,7 +26,6 @@ package com.otestadortecnico.backend.service;
 import com.otestadortecnico.backend.entity.Pessoa;
 import com.otestadortecnico.backend.exception.PessoaNotFoundException;
 import com.otestadortecnico.backend.repositories.PessoaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,8 +35,11 @@ import java.util.function.Consumer;
 @Service("pessoaService")
 public class PessoaServiceImpl implements PessoaService {
 
-    @Autowired
-    private PessoaRepository repository;
+    private final PessoaRepository repository;
+
+    public PessoaServiceImpl(PessoaRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public List<Pessoa> get() {
@@ -70,7 +72,7 @@ public class PessoaServiceImpl implements PessoaService {
     public void deleteByID(Long id) {
         Optional<Pessoa> pessoa = get(id);
 
-        if(!pessoa.isEmpty()) {
+        if(!pessoa.isPresent()) {
             repository.deleteById(id);
         } else {
             throw new PessoaNotFoundException(id);

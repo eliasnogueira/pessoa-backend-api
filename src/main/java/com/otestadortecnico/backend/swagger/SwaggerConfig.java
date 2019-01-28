@@ -46,7 +46,7 @@ public class SwaggerConfig {
                 build();
     }
 
-    ApiInfo apiInfo() {
+    private ApiInfo apiInfo() {
         return new ApiInfoBuilder().
                 title("Cadastro de pessoas").
                 description("Aplicação de cadastro de pessoas").
